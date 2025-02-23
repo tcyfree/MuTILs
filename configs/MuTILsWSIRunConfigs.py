@@ -178,4 +178,7 @@ class RunConfigs:
             return RunConfigs.get_slide_names_for_NHS_breast(all_slidenames, run_kwargs['N_SUBSETS'])
         else:
             all_slidenames.sort()
+            print(run_kwargs['N_SUBSETS'])
+            print(len(all_slidenames))
+            print((all_slidenames))
             return splitlist(all_slidenames, len(all_slidenames) // run_kwargs['N_SUBSETS'])

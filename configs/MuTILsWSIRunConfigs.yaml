@@ -30,6 +30,7 @@ save_nuclei_props: True
 ## ----------------------------------------------------------------
 restrict_to_vta: False
 COHORT: 'unknown'
+# COHORT: 'TCGA_BRCA'
 
 ## ----------------------------------------------------------------
 # Inference configurations
