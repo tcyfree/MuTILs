@@ -70,7 +70,7 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
             roi_clust_mpp=20.0,  # 0.5x
             roi_kmeans_kvp=None,
             topk_rois=None,
-            topk_rois_sampling_mode="weighted",
+            topk_rois_sampling_mode="stratified",
             # color normalization & augmentation
             cnorm=True,
             cnorm_kwargs=None,
@@ -181,6 +181,7 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
                 '.scn',  # CPS cohorts
                 '.ndpi',  # new cps scans
                 '.mrxs',  # NHS breast
+                '.jpeg',  # NHS breast
             ],
             keep_slides=keep_slides,
             reverse=self._reverse,
@@ -190,7 +191,7 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         self._slide = None
         self._sldname = None
         self._slmonitor = None
-        self._top_rois = None
+        self._top_rois = 10
         self._savedir = None
         self._modelname = None
         self._mrois = None
@@ -213,6 +214,8 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
             self.logger.info(f"")
             self.logger.info(f"*** {self._slmonitor} ***")
             self.logger.info(f"")
+            print("run_all_slides_topk_rois: ", self._top_rois)
+            print("run_all_slides_topk_rois_sampling_mode: ", self._topk_rois_sampling_mode)
             self.run_slide()
 
     @collect_errors()
@@ -241,6 +244,8 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         self._sldmeta["metrics"] = {
             'weighted_by_rois': self._summarize_rois(metas),
             'unweighted_global': self._get_global_metrics(metas),
+            'stratified_by_rois': self._summarize_rois(metas),
+            'unstratified_global': self._get_global_metrics(metas),
         }
 
     @collect_errors()
@@ -253,8 +258,9 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         nrois = len(self._mrois)
         for rno, self._rid in enumerate(self._mrois):
 
-            if self._debug and rno > 1:
-                break
+            # # 如果 DEBUG 模式开启，只处理前 2 个 ROI
+            # if self._debug and rno > 1:
+            #     break
 
             self._rmonitor = f"{self._mdmonitor}: roi {rno + 1} of {nrois}"
             collect_errors.monitor = self._rmonitor
@@ -460,6 +466,7 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         """
         metrics = DataFrame.from_records([j['metrics'] for j in metas])
         summ = {'n_rois': metrics.shape[0]}
+        print("Columns in metrics:", metrics.columns.tolist()) #检查列名
         # restrict to topk salient rois
         metrics = metrics.sort_values('SaliencyScore', ascending=False)
         if self.topk_salient_rois is not None:
@@ -918,7 +925,8 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         df = df.loc[df.loc[:, 'rag'] > 0, :]
         df = df.loc[df.loc[:, 'score'] > 0, :]
         df.sort_values('score', axis=0, ascending=False, inplace=True)
-
+        print("pick_topk_rois: ", self.topk_rois)
+        print("pick_topk_rois_sampling_mode: ", self._topk_rois_sampling_mode)
         # maybe we want to analyze ALL rois
         if self.topk_rois is None:
             return list(df.index)
