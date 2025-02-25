@@ -139,6 +139,7 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
             )
         assert topk_rois_sampling_mode in ("stratified", "weighted", "sorted")
         self._topk_rois_sampling_mode = topk_rois_sampling_mode
+        print("topk_rois_sampling_mode!!!!:", topk_rois_sampling_mode)
 
         # grand-challenge platform
         self.grandch = grandch
@@ -191,7 +192,7 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         self._slide = None
         self._sldname = None
         self._slmonitor = None
-        self._top_rois = 10
+        self._top_rois = None
         self._savedir = None
         self._modelname = None
         self._mrois = None
@@ -214,7 +215,6 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
             self.logger.info(f"")
             self.logger.info(f"*** {self._slmonitor} ***")
             self.logger.info(f"")
-            print("run_all_slides_topk_rois: ", self._top_rois)
             print("run_all_slides_topk_rois_sampling_mode: ", self._topk_rois_sampling_mode)
             self.run_slide()
 
@@ -244,8 +244,6 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         self._sldmeta["metrics"] = {
             'weighted_by_rois': self._summarize_rois(metas),
             'unweighted_global': self._get_global_metrics(metas),
-            'stratified_by_rois': self._summarize_rois(metas),
-            'unstratified_global': self._get_global_metrics(metas),
         }
 
     @collect_errors()
@@ -258,9 +256,9 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         nrois = len(self._mrois)
         for rno, self._rid in enumerate(self._mrois):
 
-            # # 如果 DEBUG 模式开启，只处理前 2 个 ROI
-            # if self._debug and rno > 1:
-            #     break
+            # 如果 DEBUG 模式开启，只处理前 2 个 ROI
+            if self._debug and rno > 1:
+                break
 
             self._rmonitor = f"{self._mdmonitor}: roi {rno + 1} of {nrois}"
             collect_errors.monitor = self._rmonitor
@@ -827,13 +825,16 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         if not self._debug:
             return
 
+        # 创建 1 行 2 列的子图
         fig, ax = plt.subplots(1, 2, figsize=(7. * 2, 7.))
         ax[0].imshow(rgb)
+        # 在左侧子图叠加显著性间质sstroma
         ax[0].imshow(
             np.ma.masked_array(sstroma, mask=~sstroma), alpha=0.3,
-            cmap=ListedColormap([[0.01, 0.74, 0.25]]),
+            cmap=ListedColormap([[0.01, 0.74, 0.25]]), # 使用 ListedColormap（绿色）渲染 sstroma
         )
         ax[1].imshow(
+            # 设置颜色映射
             gvcm(mask), cmap=self.cfg.VisConfigs.COMBINED_CMAP,
             interpolation='nearest')
         plt.tight_layout(pad=0.4)
@@ -925,7 +926,6 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         df = df.loc[df.loc[:, 'rag'] > 0, :]
         df = df.loc[df.loc[:, 'score'] > 0, :]
         df.sort_values('score', axis=0, ascending=False, inplace=True)
-        print("pick_topk_rois: ", self.topk_rois)
         print("pick_topk_rois_sampling_mode: ", self._topk_rois_sampling_mode)
         # maybe we want to analyze ALL rois
         if self.topk_rois is None:
