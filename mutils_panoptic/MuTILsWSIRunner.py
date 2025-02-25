@@ -818,25 +818,58 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         )
 
     @collect_errors()
+    # def _maybe_visualize_roi(self, rgb, mask, sstroma):
+    #     """
+    #     Plot and save roi visualization.
+    #     """
+    #     if not self._debug:
+    #         return
+
+    #     # 创建 1 行 2 列的子图
+    #     fig, ax = plt.subplots(1, 2, figsize=(7. * 2, 7.))
+    #     ax[0].imshow(rgb)
+    #     # 在左侧子图叠加显著性间质sstroma
+    #     ax[0].imshow(
+    #         np.ma.masked_array(sstroma, mask=~sstroma), alpha=0.3,
+    #         cmap=ListedColormap([[0.01, 0.74, 0.25]]), # 使用 ListedColormap（绿色）渲染 sstroma
+    #     )
+    #     ax[1].imshow(
+    #         # 设置颜色映射
+    #         gvcm(mask), cmap=self.cfg.VisConfigs.COMBINED_CMAP,
+    #         interpolation='nearest')
+    #     plt.tight_layout(pad=0.4)
+    #     plt.savefig(opj(self._savedir, 'roiVis', self._roiname + '.png'))
+    #     plt.close()
     def _maybe_visualize_roi(self, rgb, mask, sstroma):
         """
-        Plot and save roi visualization.
+        Plot and save ROI visualization.
         """
         if not self._debug:
             return
 
-        # 创建 1 行 2 列的子图
-        fig, ax = plt.subplots(1, 2, figsize=(7. * 2, 7.))
+        # 创建 1 行 3 列的子图
+        fig, ax = plt.subplots(1, 3, figsize=(7. * 3, 7.))
+
+        # (1) 最左侧：原始图像
         ax[0].imshow(rgb)
-        # 在左侧子图叠加显著性间质sstroma
-        ax[0].imshow(
-            np.ma.masked_array(sstroma, mask=~sstroma), alpha=0.3,
-            cmap=ListedColormap([[0.01, 0.74, 0.25]]), # 使用 ListedColormap（绿色）渲染 sstroma
-        )
+        ax[0].set_title("Original Image")
+
+        # (2) 中间：在原图上叠加 sstroma
+        ax[1].imshow(rgb)
         ax[1].imshow(
-            # 设置颜色映射
+            np.ma.masked_array(sstroma, mask=~sstroma), alpha=0.3,
+            cmap=ListedColormap([[0.01, 0.74, 0.25]])  # 绿色渲染 sstroma
+        )
+        ax[1].set_title("With SSTROMA Overlay")
+
+        # (3) 右侧：mask 可视化
+        ax[2].imshow(
             gvcm(mask), cmap=self.cfg.VisConfigs.COMBINED_CMAP,
-            interpolation='nearest')
+            interpolation='nearest'
+        )
+        ax[2].set_title("Masked ROI")
+
+        # 调整布局并保存
         plt.tight_layout(pad=0.4)
         plt.savefig(opj(self._savedir, 'roiVis', self._roiname + '.png'))
         plt.close()
