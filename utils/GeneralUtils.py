@@ -95,7 +95,7 @@ def append_row_to_df_or_create_it(where: str, df: DataFrame):
     existing_cols = set(ordered_existing_cols)
     cols_to_append = set(df.columns)
     missing_cols = existing_cols.difference(cols_to_append)
-    df.loc[:, missing_cols] = np.nan
+    df.loc[:, list(missing_cols)] = np.nan
 
     # columns in this row but not in saved df
     extra_cols = list(cols_to_append.difference(existing_cols))
