@@ -122,7 +122,8 @@ class MuTILsWSIRunner(MutilsInferenceRunner):
         collect_errors.logger = self.logger
         collect_errors._debug = self._debug
 
-        self.base_savedir = opj(base_savedir, 'perSlideResults')
+        # self.base_savedir = opj(base_savedir, 'perSlideResults')
+        self.base_savedir = base_savedir
         os.makedirs(self.base_savedir, exist_ok=True)
         self._monitor = monitor
         self.save_wsi_mask = save_wsi_mask
