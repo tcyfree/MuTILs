@@ -120,6 +120,7 @@ class MutilsInferenceRunner(object):
             return
         cuda = torch.cuda.is_available()
         self.device = torch.device('cuda') if cuda else torch.device('cpu')
+        print('self.device: ', self.device)
         self.model = load_trained_mutils_model(self.model_path, mtp=self.mtp)
         self.model.eval()
 
