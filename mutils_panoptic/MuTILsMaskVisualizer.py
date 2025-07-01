@@ -161,6 +161,7 @@ class MutilsMaskVisualizer(object):
             self.visualized_mask_dir if self.visualized_mask_dir is not None
             else self.slide_dirs[slide_name]
         )
+        print("Saved visualized mask to:", opj(where, slide_name + '_VisMask.tif'))
         vwsi.tiffsave(
             opj(where, slide_name + '_VisMask.tif'),
             tile=True, tile_width=128, tile_height=128, pyramid=True,
@@ -261,8 +262,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Visualize MuTILsWSIRunner output.'
     )
-    parser.add_argument('-p', '--basepath', type=str)
+    parser.add_argument('-p', '--basepath', type=str, default='/home/network/Desktop/Project/MuTILs_HiPS/output/perSlideResults/IMPRESS/TNBC')
+    
     ARGS = parser.parse_args()
 
-    vizer = MutilsMaskVisualizer(wsi_mask_and_annot_basepath=ARGS.basepath)
+    vizer = MutilsMaskVisualizer(wsi_mask_and_annot_basepath=ARGS.basepath, slide_names=["914_HE"])
     vizer.run()
